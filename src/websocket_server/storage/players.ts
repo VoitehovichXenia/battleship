@@ -1,24 +1,27 @@
-import { readFile, writeFile } from 'fs/promises';
-import { resolve } from 'path';
-
 export type PlayerData = {
   name: string
-  password: string
+  password?: string
   index?: number | string
+  error?: boolean
+  errorText?: string
 }
-
 export class Players {
-  static readonly pathToDB: string = resolve(process.cwd(), './src/websocket_server/players.ts');
+  private _players: PlayerData[] = [];
 
-  static async getAll(): Promise<PlayerData[]> {
-    const players = await readFile(Players.pathToDB, { encoding: 'utf-8' });
-    return JSON.parse(players);
+  public getAll(): PlayerData[] {
+    return this._players;
   }
 
-  static async add({ name, password }: PlayerData): Promise<PlayerData> {
-    const players = await Players.getAll();
-    players.push({ name, password });
-    await writeFile(Players.pathToDB, JSON.stringify(players), { encoding: 'utf-8' });
-    return { name, password, index: players.length - 1 };
+  public get(name: string): PlayerData | undefined {
+    return this._players.find(player => player.name === name);
+  }
+
+  public add({ name, password }: PlayerData): PlayerData {
+    const isUsernameInUse = this._players.find(player => player.name === name);
+    if (!isUsernameInUse) {
+      this._players.push({ name });
+      return { name, password, index: this._players.length - 1, error: false, errorText: '' };
+    }
+    return { name, password, index: this._players.length - 1, error: true, errorText: 'Username is already in use' };
   }
 }
