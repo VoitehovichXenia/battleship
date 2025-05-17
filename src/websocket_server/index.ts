@@ -2,6 +2,7 @@ import { WebSocketServer, Server } from 'ws';
 import { Players } from './storage/players';
 import { Rooms } from './storage/rooms';
 import { Winners } from './storage/winners';
+import { Games } from './storage/games';
 import { MESSAGES, WS_PORT, WSMessage } from './constants';
 import { handleReg } from './handlers/handleReg';
 import { handleGlobalUpdate } from './handlers/handleGlobalUpdate';
@@ -10,6 +11,7 @@ const wss: Server = new WebSocketServer({ port: WS_PORT });
 const players = new Players();
 const rooms = new Rooms();
 const winners = new Winners();
+const games = new Games();
 wss.on('connection', function connection(ws) {
   console.log('Client connected');
   let registeredUser: string;
@@ -34,7 +36,7 @@ wss.on('connection', function connection(ws) {
 
       if (type === MESSAGES.createRoom) {
         const currentPlayer = players.get(registeredUser);
-        const isRoomCreated = rooms.create({ user: currentPlayer });
+        const isRoomCreated = rooms.create({ user: currentPlayer, ws });
         if (isRoomCreated) {
           handleGlobalUpdate({ wss, type: MESSAGES.updateRoom, id, data: rooms });
         }
@@ -43,10 +45,26 @@ wss.on('connection', function connection(ws) {
       if (type === MESSAGES.addUserToRoom) {
         const { indexRoom } = JSON.parse(data);
         const currentPlayer = players.get(registeredUser);
-        const isUserAdded = rooms.addUserToRoom({ user: currentPlayer, roomId: indexRoom });
-        if (isUserAdded) {
+        const roomId = rooms.addUserToRoom({ user: currentPlayer, roomId: indexRoom, ws });
+        if (roomId) {
           handleGlobalUpdate({ wss, type: MESSAGES.updateRoom, id, data: rooms });
-          handleGlobalUpdate({ wss, type: MESSAGES.updateWinners, id, data: winners });
+          const room = rooms.get(roomId);
+          const roomUsers = room?.roomUsers;
+          const wsPlayers = room?.ws;
+          const game = games.createGame({ roomId, roomUsers });
+          wsPlayers?.forEach(({ user, ws }) => {
+            const gameData = {
+              idGame: game?.idGame,
+              idPlayer: game?.players.find(item => item.includes(`${user}-`))
+            };
+            const resData: WSMessage = {
+              type: MESSAGES.createGame,
+              data: JSON.stringify(gameData),
+              id,
+            };
+
+            ws.send(JSON.stringify(resData));
+          });
         }
       }
 

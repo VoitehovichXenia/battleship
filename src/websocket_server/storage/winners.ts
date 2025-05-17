@@ -9,4 +9,5 @@ export class Winners {
   public getAll(): WinnerData[] {
     return this._winners;
   }
+  public getAllForResponse: () => WinnerData[] = this.getAll;
 }

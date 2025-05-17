@@ -8,7 +8,8 @@ export const MESSAGES = {
   createRoom: 'create_room',
   updateRoom: 'update_room',
   updateWinners: 'update_winners',
-  addUserToRoom: 'add_user_to_room'
+  addUserToRoom: 'add_user_to_room',
+  createGame: 'create_game'
 } as const;
 
 export type WSMessagesType = typeof MESSAGES[keyof typeof MESSAGES]

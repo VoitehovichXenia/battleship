@@ -5,8 +5,9 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "node ./index.js",
-        "start:dev": "nodemon ./index.js",
+        "start": "tsx watch ./start.ts",
+        "start:client": "node ./index.js",
+        "start:client:dev": "nodemon ./index.js",
         "start:server:dev": "tsx watch src/websocket_server/index.ts",
         "start:server:prod": "tsx src/websocket_server/index.ts",
         "lint": "npx eslint ./src/websocket_server",
