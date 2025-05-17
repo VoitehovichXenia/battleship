@@ -3,13 +3,19 @@ import { Server } from 'ws';
 export const WS_PORT = 3000;
 
 export const MESSAGES = {
+  // user events
   reg: 'reg',
   single: 'single_play',
+  // room events
   createRoom: 'create_room',
   updateRoom: 'update_room',
-  updateWinners: 'update_winners',
   addUserToRoom: 'add_user_to_room',
-  createGame: 'create_game'
+  // winners events
+  updateWinners: 'update_winners',
+  // game events
+  createGame: 'create_game',
+  addShips: 'add_ships',
+  startGame: 'start_game',
 } as const;
 
 export type WSMessagesType = typeof MESSAGES[keyof typeof MESSAGES]

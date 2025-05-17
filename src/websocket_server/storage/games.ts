@@ -1,8 +1,21 @@
 import { RoomUsers } from './rooms';
 
+type ShipsInfo = {
+  position: { x: number, y: number }
+  direction: boolean // false - horizontal, true - vertical
+  type: 'huge' | 'large' | 'medium' | 'small'
+  length: number
+}
+
+type GameShipsInfo = {
+  player: string
+  ships: ShipsInfo[]
+}
+
 export type GameData = {
   idGame: string
   players: string[]
+  ships?: GameShipsInfo[]
 }
 
 export class Games {
@@ -10,6 +23,10 @@ export class Games {
 
   public getAll(): GameData[] {
     return this._games;
+  }
+
+  public get(gameId: string): GameData | undefined {
+    return this._games.find(game => game.idGame === gameId);
   }
 
   public createGame({ roomId, roomUsers }: {roomId: string, roomUsers?: RoomUsers}): GameData | null {
@@ -21,5 +38,18 @@ export class Games {
     };
     this._games.push(newGame);
     return newGame;
+  }
+
+  public addPlayerShips({ gameId, indexPlayer, ships }: { gameId: string, indexPlayer: string, ships: ShipsInfo[] }): GameShipsInfo[] | null {
+    const currentGame = this.get(gameId);
+    if (currentGame) {
+      currentGame.ships = currentGame.ships || [];
+      currentGame.ships.push({
+        player: indexPlayer,
+        ships
+      });
+      return currentGame.ships;
+    }
+    return null;
   }
 }

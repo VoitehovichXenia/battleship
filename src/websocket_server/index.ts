@@ -68,6 +68,31 @@ wss.on('connection', function connection(ws) {
         }
       }
 
+      if (type === MESSAGES.addShips) {
+        const { gameId, ships, indexPlayer } = JSON.parse(data);
+        const shipsInfo = games.addPlayerShips({ gameId, ships, indexPlayer });
+        if (shipsInfo && shipsInfo.length === 2) {
+          const roomId = gameId.slice(0, gameId.lastIndexOf('-'));
+          const room = rooms.get(roomId);
+          const wsPlayers = room?.ws;
+          wsPlayers?.forEach(({ ws }) => {
+            const shipsData = {
+              ships,
+              currentPlayerIndex: indexPlayer
+            };
+            const resData: WSMessage = {
+              type: MESSAGES.startGame,
+              data: JSON.stringify(shipsData),
+              id,
+            };
+
+            ws.send(JSON.stringify(resData));
+          });
+        } else {
+          throw new Error('Ships wasn\'t added');
+        }
+      }
+
     } catch {
       console.log('WS error');
     }
