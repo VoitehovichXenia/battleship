@@ -6,6 +6,7 @@ import { Games } from './storage/games';
 import { MESSAGES, WS_PORT, WSMessage } from './constants';
 import { handleReg } from './handlers/handleReg';
 import { handleGlobalUpdate } from './handlers/handleGlobalUpdate';
+import { handleGameClientsUpdate } from './handlers/handleGameClientsUpdate';
 
 const wss: Server = new WebSocketServer({ port: WS_PORT });
 const players = new Players();
@@ -74,22 +75,65 @@ wss.on('connection', function connection(ws) {
         if (shipsInfo && shipsInfo.length === 2) {
           const roomId = gameId.slice(0, gameId.lastIndexOf('-'));
           const room = rooms.get(roomId);
-          const wsPlayers = room?.ws;
-          wsPlayers?.forEach(({ ws }) => {
+          if (room) {
             const shipsData = {
               ships,
               currentPlayerIndex: indexPlayer
             };
-            const resData: WSMessage = {
+            const shipsResData: WSMessage = {
               type: MESSAGES.startGame,
               data: JSON.stringify(shipsData),
               id,
             };
-
-            ws.send(JSON.stringify(resData));
-          });
+            const turnResData: WSMessage = {
+              type: MESSAGES.turn,
+              data: JSON.stringify({ currentPlayer: indexPlayer }),
+              id
+            };
+            handleGameClientsUpdate({ room, data: shipsResData });
+            handleGameClientsUpdate({ room, data: turnResData });
+          }
         } else {
           throw new Error('Ships wasn\'t added');
+        }
+      }
+
+      if (type === MESSAGES.attack || type === MESSAGES.randomAttack) {
+        const messageData = JSON.parse(data);
+        const gameId = messageData.gameId;
+        const indexPlayer = messageData.indexPlayer;
+        let x: number, y: number;
+        if (type === MESSAGES.attack) {
+          x = messageData.x;
+          y = messageData.y;
+        } else {
+          const randomPos = games.generateRandomAttack();
+          x = randomPos.x;
+          y = randomPos.y;
+        }
+        const currentTurn = games.getCurrentTurn(gameId);
+        if (currentTurn && currentTurn !== indexPlayer) throw new Error();
+        const status = games.handleAttack({ gameId, indexPlayer, x, y });
+        const roomId = gameId.slice(0, gameId.lastIndexOf('-'));
+        const room = rooms.get(roomId);
+        if (status && room) {
+          const attackData = {
+            position: { x, y },
+            currentPlayer: indexPlayer,
+            status
+          };
+          const attackResData: WSMessage = {
+            type: MESSAGES.attack,
+            data: JSON.stringify(attackData),
+            id,
+          };
+          const turnResData: WSMessage = {
+            type: MESSAGES.turn,
+            data: JSON.stringify({ currentPlayer: games.handleTurn({ status, playerId: indexPlayer, gameId }) }),
+            id
+          };
+          handleGameClientsUpdate({ room, data: attackResData });
+          handleGameClientsUpdate({ room, data: turnResData });
         }
       }
 

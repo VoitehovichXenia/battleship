@@ -16,6 +16,9 @@ export const MESSAGES = {
   createGame: 'create_game',
   addShips: 'add_ships',
   startGame: 'start_game',
+  attack: 'attack',
+  turn: 'turn',
+  randomAttack: 'randomAttack'
 } as const;
 
 export type WSMessagesType = typeof MESSAGES[keyof typeof MESSAGES]

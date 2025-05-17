@@ -1,10 +1,16 @@
 import { RoomUsers } from './rooms';
+import { getRandomInteger } from '../utils/getRandomInteger';
+
+type AttackStatus = 'miss' | 'killed' | 'shot'
+
+type ShipPosition = { x: number, y: number }
 
 type ShipsInfo = {
-  position: { x: number, y: number }
+  position: ShipPosition
   direction: boolean // false - horizontal, true - vertical
   type: 'huge' | 'large' | 'medium' | 'small'
   length: number
+  wounds?: {x: number, y: number}[]
 }
 
 type GameShipsInfo = {
@@ -16,8 +22,8 @@ export type GameData = {
   idGame: string
   players: string[]
   ships?: GameShipsInfo[]
+  currentTurn?: string
 }
-
 export class Games {
   private _games: GameData[] = [];
 
@@ -51,5 +57,77 @@ export class Games {
       return currentGame.ships;
     }
     return null;
+  }
+
+  private getEnemyShips({ gameId, indexPlayer }: { gameId: string, indexPlayer: string }): ShipsInfo[] | undefined {
+    const currentGame = this.get(gameId);
+    if (currentGame) {
+      const enemyShips = currentGame.ships?.find(ships => ships.player !== indexPlayer);
+      return enemyShips?.ships;
+    }
+  }
+
+  private getEnemyId({ playerId, gameId }: { playerId: string, gameId: string }): string | undefined {
+    const currentGame = this.get(gameId);
+    if (currentGame) {
+      const enemyId = currentGame.players.find(item => item !== playerId);
+      return enemyId;
+    }
+  }
+
+  public handleAttack({ gameId, indexPlayer, x, y }: { gameId: string, indexPlayer: string, x: number, y: number }): AttackStatus | undefined {
+    const enemyShips = this.getEnemyShips({ gameId, indexPlayer });
+    if (enemyShips) {
+      for (let i = 0; i < enemyShips.length; i += 1) {
+        const ship = enemyShips[i];
+        const startX = ship.position.x;
+        const startY = ship.position.y;
+        const endX = ship.direction ? startX : startX + ship.length;
+        const endY = ship.direction ? startY + ship.length : startY;
+        if (x >= startX && x <= endX && y >= startY && y <= endY && ship.wounds?.length !== ship.length) {
+          if (ship.length === 1) return 'killed';
+          if (ship.length > 1) {
+            ship.wounds = ship.wounds || [];
+            ship.wounds.push({ x, y });
+            if (ship.wounds.length === ship.length) return 'killed';
+            return 'shot';
+          }
+        }
+      };
+      return 'miss';
+    }
+  }
+
+  public handleTurn({ status, playerId, gameId }: { status: AttackStatus, playerId: string, gameId: string }) {
+    if (status === 'killed' || status === 'shot') {
+      this.setCurrentTurn({ gameId, indexPlayer: playerId });
+      return playerId;
+    }
+    const enemyId = this.getEnemyId({ playerId, gameId });
+    if (enemyId) {
+      this.setCurrentTurn({ gameId, indexPlayer: enemyId });
+    }
+    return enemyId;
+  }
+
+  public getCurrentTurn({ gameId }: { gameId: string }): string | undefined {
+    const currentGame = this.get(gameId);
+    if (currentGame) {
+      return currentGame.currentTurn;
+    }
+  }
+
+  public setCurrentTurn({ gameId, indexPlayer }: { gameId: string, indexPlayer: string }): string | undefined {
+    const currentGame = this.get(gameId);
+    if (currentGame) {
+      currentGame.currentTurn = indexPlayer;
+      return currentGame.currentTurn;
+    }
+  }
+
+  public generateRandomAttack(): ShipPosition {
+    const randomX = getRandomInteger(0, 10);
+    const randomY = getRandomInteger(0, 10);
+    return { x: randomX, y: randomY };
   }
 }
