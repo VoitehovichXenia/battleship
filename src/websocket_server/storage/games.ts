@@ -82,16 +82,13 @@ export class Games {
         const ship = enemyShips[i];
         const startX = ship.position.x;
         const startY = ship.position.y;
-        const endX = ship.direction ? startX : startX + ship.length;
-        const endY = ship.direction ? startY + ship.length : startY;
+        const endX = ship.direction ? startX : startX + ship.length -1;
+        const endY = ship.direction ? startY + ship.length - 1 : startY;
         if (x >= startX && x <= endX && y >= startY && y <= endY && ship.wounds?.length !== ship.length) {
-          if (ship.length === 1) return 'killed';
-          if (ship.length > 1) {
-            ship.wounds = ship.wounds || [];
-            ship.wounds.push({ x, y });
-            if (ship.wounds.length === ship.length) return 'killed';
-            return 'shot';
-          }
+          ship.wounds = ship.wounds || [];
+          ship.wounds.push({ x, y });
+          if (ship.wounds.length === ship.length) return 'killed';
+          return 'shot';
         }
       };
       return 'miss';
@@ -129,5 +126,13 @@ export class Games {
     const randomX = getRandomInteger(0, 10);
     const randomY = getRandomInteger(0, 10);
     return { x: randomX, y: randomY };
+  }
+
+  public checkIfGameIsFinished({ gameId, indexPlayer }: { gameId: string, indexPlayer: string }): boolean {
+    const enemyShips = this.getEnemyShips({ gameId, indexPlayer });
+    if (enemyShips) {
+      return enemyShips.every(ship => ship.length === ship.wounds?.length);
+    }
+    return false;
   }
 }

@@ -18,7 +18,8 @@ export const MESSAGES = {
   startGame: 'start_game',
   attack: 'attack',
   turn: 'turn',
-  randomAttack: 'randomAttack'
+  randomAttack: 'randomAttack',
+  finish: 'finish'
 } as const;
 
 export type WSMessagesType = typeof MESSAGES[keyof typeof MESSAGES]

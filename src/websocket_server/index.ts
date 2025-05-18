@@ -114,6 +114,7 @@ wss.on('connection', function connection(ws) {
         const currentTurn = games.getCurrentTurn(gameId);
         if (currentTurn && currentTurn !== indexPlayer) throw new Error();
         const status = games.handleAttack({ gameId, indexPlayer, x, y });
+        const isGameFinished = games.checkIfGameIsFinished({ gameId, indexPlayer });
         const roomId = gameId.slice(0, gameId.lastIndexOf('-'));
         const room = rooms.get(roomId);
         if (status && room) {
@@ -127,13 +128,27 @@ wss.on('connection', function connection(ws) {
             data: JSON.stringify(attackData),
             id,
           };
-          const turnResData: WSMessage = {
-            type: MESSAGES.turn,
-            data: JSON.stringify({ currentPlayer: games.handleTurn({ status, playerId: indexPlayer, gameId }) }),
-            id
-          };
           handleGameClientsUpdate({ room, data: attackResData });
-          handleGameClientsUpdate({ room, data: turnResData });
+          if (!isGameFinished) {
+            const turnResData: WSMessage = {
+              type: MESSAGES.turn,
+              data: JSON.stringify({ currentPlayer: games.handleTurn({ status, playerId: indexPlayer, gameId }) }),
+              id
+            };
+            handleGameClientsUpdate({ room, data: turnResData });
+          } else {
+            const finishGameData: WSMessage = {
+              type: MESSAGES.finish,
+              data: JSON.stringify({ winPlayer: indexPlayer }),
+              id
+            };
+            handleGameClientsUpdate({ room, data: finishGameData });
+            const winner = room.roomUsers.find(user => indexPlayer.startsWith(`${user.name}-`));
+            if (winner) {
+              winners.add(winner?.name);
+            }
+            handleGlobalUpdate({ wss, type: MESSAGES.updateWinners, id, data: winners });
+          }
         }
       }
 
