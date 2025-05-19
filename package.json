@@ -5,11 +5,11 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "tsx ./start.ts",
-        "start:dev": "cross-env NODE_ENV=development tsx watch ./start.ts",
+        "start": "cross-env BOTH_SERVERS=true tsx ./start.ts",
+        "start:dev": "cross-env BOTH_SERVERS=true NODE_ENV=development tsx watch ./start.ts",
         "start:client": "node ./index.js",
         "start:client:dev": "nodemon ./index.js",
-        "start:server:dev": "tsx watch src/websocket_server/index.ts",
+        "start:server:dev": "cross-env NODE_ENV=developmenttsx watch src/websocket_server/index.ts",
         "start:server:prod": "tsx src/websocket_server/index.ts",
         "lint": "npx eslint ./src/websocket_server",
         "test": "echo \"Error: no test specified\" && exit 1"

@@ -12,6 +12,8 @@ import { generateShipsMap } from './utils/generateShipsMap';
 import { BOT_NAME, SINGLE_PLAY_MODE } from './constants/game';
 import { PlayerData } from './storage/players/constants';
 import { RoomData } from './storage/rooms/constants';
+import { spawn } from 'node:child_process';
+import { resolve } from 'node:path';
 
 const wss: Server = new WebSocketServer({ port: WS_PORT });
 const players = new Players();
@@ -225,3 +227,16 @@ wss.on('connection', function connection(ws) {
 });
 
 console.log(`WebSocket server started on ws://localhost:${WS_PORT}`);
+
+if (process.env.BOTH_SERVERS === 'true') {
+  spawn(
+    process.env.NODE_ENV === 'development' ? 'nodemon' : 'node',
+    [
+      resolve(process.cwd(), './index.js')
+    ],
+    {
+      stdio: 'inherit',
+      shell: true,
+    }
+  );
+}
