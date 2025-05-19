@@ -3,12 +3,12 @@ import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 
 if (cluster.isPrimary) {  
-  const WSServer = spawn('npx', [ 'tsx', resolve(process.cwd(), './src/websocket_server/index.ts') ], {
+  const WSServer = spawn('npx', [ 'tsx', process.env.NODE_ENV === 'development' ? 'watch' : '', resolve(process.cwd(), './src/websocket_server/index.ts') ], {
     stdio: 'inherit',
     shell: true,
   });
   
-  const clientServer = spawn('node', [ resolve(process.cwd(), './index.js') ], {
+  const clientServer = spawn(process.env.NODE_ENV === 'development' ? 'nodemon' : 'node', [ resolve(process.cwd(), './index.js') ], {
     stdio: 'inherit',
     shell: true,
   });
