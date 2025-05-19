@@ -1,4 +1,4 @@
-import { USUAL_MODE } from '../../constants/game';
+import { SINGLE_PLAY_MODE, USUAL_MODE } from '../../constants/game';
 import { AddUserToRoomProps, CreateProps, RoomData } from './constants';
 
 export class Rooms {
@@ -9,7 +9,7 @@ export class Rooms {
   }
 
   public getAllForResponse(): Omit<RoomData, 'ws' | 'type'>[] {
-    return this._rooms.map(({ roomId, roomUsers }) => ({ roomId, roomUsers }));
+    return this._rooms.filter(item => item.type !== SINGLE_PLAY_MODE).map(({ roomId, roomUsers }) => ({ roomId, roomUsers }));
   }
 
   public get(roomId: string): RoomData | undefined {
