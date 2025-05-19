@@ -1,6 +1,7 @@
-import { WSMessage } from '../constants';
-import { Players } from '../storage/players';
 import { WebSocket } from 'ws';
+import { WSMessage } from '../constants/constants';
+import { Players } from '../storage/players';
+import { handleSendMessage } from '../handlers/handleSendMessage';
 
 type HandleReg = WSMessage & {
   players: Players
@@ -15,7 +16,7 @@ export const handleReg = ({ type, id, data, players, ws }: HandleReg): string | 
     data: JSON.stringify(resData),
     id
   };
-  ws.send(JSON.stringify(res));  
+  handleSendMessage(res, ws); 
   if (!resData?.error) {
     return name;
   }

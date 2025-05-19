@@ -1,4 +1,4 @@
-import { HandleUpdateAllClients, WSMessage } from '../constants';
+import { HandleUpdateAllClients, WSMessage } from '../constants/constants';
 import { handleAllClientsUpdate } from './handleAllClientsUpdate';
 import { Rooms } from '../storage/rooms';
 import { Winners } from '../storage/winners';

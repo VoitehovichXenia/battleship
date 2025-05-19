@@ -12,6 +12,6 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/websocket_server/*.ts"],      // Include .ts files from the src folder
+  "include": ["src/websocket_server/*.ts", "src/websocket_server/**/*.ts"],      // Include .ts files from the src folder
   "exclude": ["node_modules"] 
 }

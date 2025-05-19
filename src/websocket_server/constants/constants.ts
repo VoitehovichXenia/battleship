@@ -30,6 +30,10 @@ export type WSMessage = {
   id: 0
 }
 
+export type MessagesProps = Pick<WSMessage, 'id'> & {
+  indexPlayer: string
+}
+
 export type HandleUpdateAllClients<T> = {
   data: T
   wss: Server

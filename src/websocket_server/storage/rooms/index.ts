@@ -1,21 +1,6 @@
-import { WebSocket } from 'ws';
-import { PlayerData } from './players';
+import { USUAL_MODE } from '../../constants/game';
+import { AddUserToRoomProps, CreateProps, RoomData } from './constants';
 
-export type RoomUsers = Array<{
-  name: string
-  index: string
-}>
-
-type ClientInfo = {
-  ws: WebSocket
-  user: string
-}
-
-export type RoomData = {
-  roomId: string
-  roomUsers: RoomUsers
-  ws: ClientInfo[]
-}
 export class Rooms {
   private _rooms: RoomData[] = [];
 
@@ -23,7 +8,7 @@ export class Rooms {
     return this._rooms;
   }
 
-  public getAllForResponse(): Omit<RoomData, 'ws'>[] {
+  public getAllForResponse(): Omit<RoomData, 'ws' | 'type'>[] {
     return this._rooms.map(({ roomId, roomUsers }) => ({ roomId, roomUsers }));
   }
 
@@ -31,9 +16,9 @@ export class Rooms {
     return this._rooms.find(room => room.roomId === roomId);
   }
 
-  public create({ user, ws }: { user?: PlayerData, ws: WebSocket }): RoomData | null {
-    if (!user) return null;
+  public create({ type, user, ws }: CreateProps): RoomData | null {
     const newRoom: RoomData = {
+      type: type || USUAL_MODE,
       roomId: `room-${this._rooms.length + 1}`,
       roomUsers: [ { name: user.name, index: 'player-1' } ],
       ws: [
@@ -47,9 +32,9 @@ export class Rooms {
     return newRoom;
   }
 
-  public addUserToRoom({ user, roomId, ws }: { user?: PlayerData, roomId: string , ws: WebSocket }): string {
-    if (!user || !roomId) return '';
+  public addUserToRoom({ user, roomId, ws }: AddUserToRoomProps): string {
     const desiredRoom = this._rooms.find(room => room.roomId === roomId);
+
     if (desiredRoom) {
       const { roomUsers } = desiredRoom;
       const isUserAlreadyInRoom = roomUsers.find(({ name }) => name === user.name);
@@ -58,10 +43,12 @@ export class Rooms {
           name: user.name,
           index: `player-${desiredRoom?.roomUsers.length + 1}`
         });
-        desiredRoom?.ws.push({
-          user: user.name,
-          ws
-        });
+        if (ws) {
+          desiredRoom?.ws.push({
+            user: user.name,
+            ws
+          });
+        }
         return roomId;
       }
     }

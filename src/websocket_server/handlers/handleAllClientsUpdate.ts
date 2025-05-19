@@ -1,7 +1,9 @@
-import { HandleUpdateAllClients, WSMessage } from '../constants';
+
+import { HandleUpdateAllClients, WSMessage } from '../constants/constants';
+import { logOnResponse } from '../utils/logs';
 
 export const handleAllClientsUpdate = ({ wss, data }: HandleUpdateAllClients<WSMessage>) => {
-  console.log('WS response', data);
+  logOnResponse(JSON.stringify(data));
   wss.clients.forEach(function each(client) {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(data));
